@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumea · Cycle Health</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#2D1B26;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:2rem 1rem;font-family:'Helvetica Neue',system-ui,sans-serif;}
+.lp{width:375px;background:#FAF7F9;border-radius:20px;border:1.5px solid #D8BFD0;overflow:hidden;display:flex;flex-direction:column;height:740px;color:#2D1B26;}
+.lds{display:flex;gap:5px;overflow-x:auto;padding:10px 12px 8px;scrollbar-width:none;}
+.lds::-webkit-scrollbar{display:none}
+.ldc{width:34px;height:52px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:500;cursor:pointer;flex-shrink:0;transition:transform .1s;gap:2px;}
+.ldc:active{transform:scale(.9)}
+.lch{padding:5px 12px;border-radius:16px;border:1.5px solid #D8BFD0;font-size:12px;cursor:pointer;background:white;color:#5C2D4A;white-space:nowrap;}
+.lch.on{background:#5C2D4A;color:white;border-color:#5C2D4A;}
+.lbt{background:#5C2D4A;color:white;border:none;border-radius:10px;padding:9px 16px;font-size:13px;cursor:pointer;font-weight:500;}
+.ltb{flex:1;border:none;background:transparent;padding:8px 0;font-size:10px;cursor:pointer;color:#9A7A8A;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.ltb.on{color:#5C2D4A;font-weight:500;}
+.lin{width:100%;border:1px solid #D8BFD0;border-radius:8px;padding:8px 12px;font-size:13px;box-sizing:border-box;font-family:inherit;color:#2D1B26;background:white;}
+.lsel{width:100%;border:1px solid #D8BFD0;border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit;color:#2D1B26;background:white;}
+</style>
+</head>
+<body>
+<div class="lp">
+<div style="background:#5C2D4A;height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;flex-shrink:0;">
+  <span style="color:#F5EAF0;font-size:12px;">9:41</span>
+  <span style="color:#F5EAF0;font-size:11px;letter-spacing:1px;font-weight:500;">LUMEA</span>
+  <span style="color:#F5EAF0;font-size:10px;">&#9646;&#9646;&#9646; 100%</span>
+</div>
+<div style="background:#5C2D4A;padding:8px 18px 14px;flex-shrink:0;">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <p style="color:rgba(245,234,240,0.65);font-size:10px;margin:0;letter-spacing:.5px;">DAY 18 &middot; LUTEAL PHASE &middot; 18 Apr 2026</p>
+      <p style="color:#F5EAF0;font-size:17px;margin:3px 0 0;font-weight:400;">Hello, Maya</p>
+    </div>
+    <div style="width:32px;height:32px;border-radius:50%;background:#B05A80;display:flex;align-items:center;justify-content:center;color:white;font-size:13px;font-weight:500;">M</div>
+  </div>
+</div>
+<div id="lpc" style="flex:1;overflow-y:auto;background:#FAF7F9;"></div>
+<div style="background:white;border-top:0.5px solid #E0C8D5;display:flex;flex-shrink:0;">
+  <button class="ltb on" id="lt-f" onclick="lpV('f')">
+    <svg width="16" height="14" viewBox="0 0 16 14" fill="none"><path d="M1 12C4 8 8 4 15 3" stroke="#5C2D4A" stroke-width="1.5"/><path d="M11 5C13 4 15 4.5 15 3" stroke="#5C2D4A" stroke-width="1.5" stroke-dasharray="1.5 1.5"/></svg>
+    Forecast
+  </button>
+  <button class="ltb" id="lt-e" onclick="lpV('e')">
+    <svg width="16" height="14" viewBox="0 0 16 14" fill="none"><rect x="1" y="7" width="4" height="6" rx="1" fill="#9A7A8A"/><rect x="6" y="4" width="4" height="9" rx="1" fill="#9A7A8A"/><rect x="11" y="1" width="4" height="12" rx="1" fill="#9A7A8A"/></svg>
+    Explore
+  </button>
+  <button class="ltb" id="lt-h" onclick="lpV('h')">
+    <svg width="16" height="14" viewBox="0 0 16 14" fill="none"><rect x="1" y="2" width="14" height="11" rx="2" stroke="#9A7A8A" stroke-width="1.2" fill="none"/><line x1="5" y1="0" x2="5" y2="4" stroke="#9A7A8A" stroke-width="1.2"/><line x1="11" y1="0" x2="11" y2="4" stroke="#9A7A8A" stroke-width="1.2"/><line x1="1" y1="6" x2="15" y2="6" stroke="#9A7A8A" stroke-width="1.2"/></svg>
+    History
+  </button>
+</div>
+</div>
+<script>
+const PC={period:'#C44040',follicular:'#4A8F6A',ovulation:'#B99040',luteal:'#7B5068'};
+const phOf=d=>d<=5?'period':d<=13?'follicular':d<=15?'ovulation':'luteal';
+const svl=v=>['None','Mild','Moderate','High','Severe'][Math.min(Math.round(v),4)]||'None';
+const BASE=new Date(2026,3,1);
+function dayLabel(d){const dt=new Date(BASE);dt.setDate(BASE.getDate()+d-1);return dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
+function dayShort(d){const dt=new Date(BASE);dt.setDate(BASE.getDate()+d-1);return dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
+const CF={Cramps:[3,4,4,3,2,0,0,0,0,0,0,0,0,1,0,1,1,1],Fatigue:[2,3,3,2,2,1,1,1,0,0,1,1,1,1,2,2,2,2],Mood:[2,2,3,3,2,4,4,5,5,5,4,4,4,4,4,3,3,3],Bloating:[3,3,2,2,1,0,0,0,0,0,0,0,0,0,0,1,1,2],Sleep:[5,5,6,6,7,7,7,8,8,8,7,7,7,7,6,6,6,6],Energy:[3,3,3,4,4,5,6,6,7,7,7,6,6,6,5,5,4,4]};
+const PR={Cramps:[1,2,2,3,3,4,4,5,4,4],Fatigue:[3,3,4,4,3,4,4,4,3,3],Mood:[3,3,2,2,2,1,2,2,2,3],Bloating:[2,3,3,3,4,4,4,3,3,2],Sleep:[5,5,4,4,4,3,4,4,5,5],Energy:[4,3,3,3,2,2,2,3,3,3]};
+const SIG_MAX={Cramps:5,Fatigue:5,Mood:5,Bloating:5,Sleep:10,Energy:10};
+const BIO_PAIR={'Sleep·Mood':'Research consistently links luteal-phase sleep disruption to worsened mood: falling progesterone reduces GABA receptor sensitivity, impairing both sleep architecture and serotonergic regulation of affect. Your data shows Sleep declining from Day 19 alongside Mood — consistent with this neuroendocrine mechanism (Lin et al., 2024; Nowakowski et al., 2013).','Mood·Sleep':'Research consistently links luteal-phase sleep disruption to worsened mood: falling progesterone reduces GABA receptor sensitivity. Your data shows Mood declining alongside Sleep — consistent with this mechanism (Lin et al., 2024).','Sleep·Energy':'Progesterone withdrawal in the late luteal phase disrupts sleep continuity, reducing restorative slow-wave sleep. Lower sleep quality is causally linked to daytime energy depletion via reduced adenosine clearance. Your data shows these two signals tracking closely from Day 19.','Energy·Sleep':'Progesterone withdrawal disrupts sleep continuity in the late luteal phase. Lower sleep quality is causally linked to daytime energy depletion. Your data shows Energy declining in parallel with Sleep from Day 19.','Cramps·Mood':'Prostaglandin-mediated cramping may amplify negative affect via pain sensitisation pathways. However, the directional relationship is bidirectional and individual variation is high — this pattern may reflect coincident hormonal withdrawal rather than a direct causal link.','Mood·Cramps':'Prostaglandin-mediated cramping may amplify negative affect via pain sensitisation. Directionality is uncertain — likely reflects coincident hormonal withdrawal rather than a direct causal link.','Fatigue·Energy':'Both decline in the late luteal phase as oestrogen falls, reducing mitochondrial efficiency and serotonin availability. Their co-decline in your data is consistent with this shared hormonal driver.','Energy·Fatigue':'Energy and fatigue share a hormonal driver: declining oestrogen in the late luteal phase reduces both mitochondrial efficiency and serotonin availability.','Cramps·Bloating':'Both are driven by prostaglandin release as progesterone falls, triggering uterine smooth muscle contraction and gut motility changes simultaneously. The predicted co-rise from Day 24 is consistent with this shared mechanism.','Bloating·Cramps':'Both bloating and cramps are driven by prostaglandin release as progesterone falls. Their predicted co-rise from Day 24 is consistent with this shared mechanism.'};
+function getBio(s1,s2){return BIO_PAIR[s1+'\u00b7'+s2]||'The relationship between '+s1.toLowerCase()+' and '+s2.toLowerCase()+' across the cycle is not yet well-characterised in the clinical literature. Individual variation is high — patterns here should be treated as exploratory. Consider discussing persistent patterns with a healthcare provider.';}
+let sd=18,sig=null,cmp=null,peer=false,addEv=false,cv='f';
+let evts=[{d1:14,d2:14,lbl:'Exam deadline',c:'prev'}];
+let peerLife='none',peerAge='22-28';
+function lpV(v){cv=v;['f','e','h'].forEach(t=>{document.getElementById('lt-'+t).className='ltb'+(t===v?' on':'');});go();}
+function rfF(){
+  let h='<div class="lds" id="day-strip">';
+  for(let d=1;d<=28;d++){
+    const ph=phOf(d),fut=d>18,sel=d===sd;
+    const brd=fut?'border:1.5px dashed '+PC[ph]+';color:'+PC[ph]+';background:transparent;':'background:'+PC[ph]+';color:white;border:1.5px solid transparent;';
+    const ring=sel?'box-shadow:0 0 0 2.5px #2D1B26;':'';
+    h+='<div class="ldc" style="'+brd+ring+'opacity:'+(fut?0.75:1)+';" onclick="lpD('+d+')"><span style="font-size:9px;opacity:0.75;">'+dayShort(d).split(' ')[1]+'</span><span>'+d+'</span></div>';
+  }
+  h+='</div><div style="display:flex;gap:10px;padding:0 12px 8px;flex-wrap:wrap;">';
+  [['Period','#C44040'],['Follicular','#4A8F6A'],['Ovulation','#B99040'],['Luteal','#7B5068'],['Predicted','dashed']].forEach(function(x){
+    var l=x[0],c=x[1];
+    h+='<span style="display:flex;align-items:center;gap:4px;font-size:9px;color:#7A566A;"><span style="width:9px;height:9px;display:inline-block;border-radius:2px;'+(c==='dashed'?'border:1.5px dashed #B99040;':'background:'+c+';')+'"></span>'+l+'</span>';
+  });
+  h+='</div>';
+  var fut=sd>18,pi=sd-19,di=sd-1,ph=phOf(sd),isToday=sd===18;
+  h+='<div style="margin:0 12px 12px;background:white;border-radius:14px;border:0.5px solid #E0C8D5;overflow:hidden;">';
+  h+='<div style="background:'+(fut?'#F5EAF0':PC[ph])+';padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">';
+  h+='<div><p style="margin:0;font-size:10px;color:'+(fut?'#7A566A':'rgba(255,255,255,0.75)')+';letter-spacing:.3px;">DAY '+sd+' &middot; '+dayLabel(sd)+(isToday?' &middot; TODAY':'')+' &middot; '+ph.toUpperCase()+'</p>';
+  h+='<p style="margin:2px 0 0;font-size:13px;font-weight:500;color:'+(fut?'#5C2D4A':'white')+'">'+(fut?'Predicted symptoms':'Confirmed symptoms')+'</p></div>';
+  h+='<span style="background:'+(fut?'white':'rgba(255,255,255,0.2)')+';color:'+(fut?'#B05A80':'white')+';border:'+(fut?'1px dashed #B05A80':'none')+';border-radius:8px;padding:3px 8px;font-size:10px;">'+(fut?'Estimated':isToday?'Today':'Confirmed')+'</span></div>';
+  if(fut) h+='<div style="padding:6px 14px;background:#FFF3F8;border-bottom:0.5px solid #F0D8E8;font-size:10px;color:#7A566A;">&#9888; Estimated from your last 3 cycles &middot; not a clinical forecast</div>';
+  h+='<div style="padding:12px 14px;display:flex;flex-direction:column;gap:10px;">';
+  ['Cramps','Fatigue','Mood','Bloating'].forEach(function(s){
+    var mx=SIG_MAX[s],v=fut?(pi>=0&&pi<PR[s].length?PR[s][pi]:0):(di>=0&&di<CF[s].length?CF[s][di]:0),p=Math.round(v/mx*100);
+    var bs=fut?'width:'+p+'%;background:rgba(176,90,128,0.18);border:1.5px dashed #B05A80;box-sizing:border-box;height:100%;border-radius:3px;':'width:'+p+'%;background:'+PC[ph]+';height:100%;border-radius:3px;';
+    h+='<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;">'+s+'</span><span style="font-size:11px;color:'+(fut?'#B05A80':'#5C2D4A')+';font-weight:500;">'+(fut?'~ ':'')+svl(v)+'</span></div><div style="height:12px;background:#F0E4EC;border-radius:3px;overflow:hidden;"><div style="'+bs+'"></div></div></div>';
+  });
+  h+='</div></div>';
+  return h;
+}
+function rfE(){
+  var sgs=['Cramps','Fatigue','Mood','Bloating','Sleep','Energy'];
+  var h='<div style="display:flex;gap:7px;padding:12px 12px 8px;overflow-x:auto;scrollbar-width:none;">'+sgs.map(function(s){return'<button class="lch'+(sig===s?' on':'')+'" onclick="lpS(\''+s+'\')">'+s+'</button>';}).join('')+'</div>';
+  if(!sig) return h+'<div style="padding:32px 20px;text-align:center;color:#7A566A;font-size:13px;line-height:1.5;"><div style="font-size:28px;margin-bottom:8px;">&#128202;</div>Select a tracked signal above to see how it changes across your cycle.</div>';
+  var mx1=SIG_MAX[sig],W=327,H=80,pad=8;
+  function xOf(d){return Math.round(pad+(d-1)/27*(W-pad*2));}
+  function yOf(v,mx){return Math.round(H-(v/mx)*(H-pad)-pad/2);}
+  function polyPts(arr,start,mx){return arr.map(function(v,i){return xOf(start+i)+','+yOf(v,mx);}).join(' ');}
+  var svg='<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" style="display:block;" xmlns="http://www.w3.org/2000/svg">';
+  [5,13,15].forEach(function(d){svg+='<line x1="'+xOf(d)+'" y1="0" x2="'+xOf(d)+'" y2="'+H+'" stroke="#E0C8D5" stroke-width="0.5" stroke-dasharray="2,2"/>';});
+  svg+='<line x1="'+xOf(18)+'" y1="0" x2="'+xOf(18)+'" y2="'+H+'" stroke="#5C2D4A" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>';
+  svg+='<polyline points="'+polyPts(CF[sig],1,mx1)+'" fill="none" stroke="#5C2D4A" stroke-width="2" stroke-linejoin="round"/>';
+  svg+='<polyline points="'+polyPts(PR[sig],19,mx1)+'" fill="none" stroke="#5C2D4A" stroke-width="2" stroke-dasharray="4,3" stroke-linejoin="round" opacity="0.7"/>';
+  if(cmp){var mx2=SIG_MAX[cmp];svg+='<polyline points="'+polyPts(CF[cmp],1,mx2)+'" fill="none" stroke="#D44080" stroke-width="2" stroke-linejoin="round" opacity="0.8"/><polyline points="'+polyPts(PR[cmp],19,mx2)+'" fill="none" stroke="#D44080" stroke-width="2" stroke-dasharray="4,3" stroke-linejoin="round" opacity="0.5"/>';}
+  svg+='</svg>';
+  var dateLbls=[1,5,10,14,18,22,26,28];
+  var dlHtml='<div style="position:relative;height:14px;margin:0 '+pad+'px;">'+dateLbls.map(function(d){return'<span style="position:absolute;left:'+((d-1)/27*100).toFixed(1)+'%;transform:translateX(-50%);font-size:8px;color:#9A7A8A;white-space:nowrap;">'+dayShort(d)+'</span>';}).join('')+'</div>';
+  h+='<div style="margin:0 12px 8px;"><p style="font-size:13px;font-weight:500;margin:0 0 1px;">'+sig+(cmp?' & '+cmp:'')+'</p><p style="font-size:9px;color:#7A566A;margin:0 0 6px;">Solid = confirmed &middot; Dashed = predicted &middot; Vertical line = 18 Apr (today)</p><div style="background:white;border:0.5px solid #E0C8D5;border-radius:10px;padding:8px 6px 4px;">'+svg+dlHtml+'</div>';
+  if(cmp){h+='<div style="display:flex;gap:16px;margin-top:6px;font-size:10px;color:#7A566A;"><span style="display:flex;align-items:center;gap:4px;"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="#5C2D4A" stroke-width="2"/></svg>'+sig+'</span><span style="display:flex;align-items:center;gap:4px;"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="#D44080" stroke-width="2" opacity="0.8"/></svg>'+cmp+'</span><span style="display:flex;align-items:center;gap:4px;"><svg width="20" height="6"><line x1="0" y1="3" x2="20" y2="3" stroke="#888" stroke-width="1.5" stroke-dasharray="3,2"/></svg>Predicted</span></div>';}
+  h+='</div>';
+  var oth=sgs.filter(function(s){return s!==sig;});
+  h+='<div style="padding:0 12px 8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="font-size:11px;color:#7A566A;">Compare with:</span>'+oth.map(function(o){return'<button class="lch'+(cmp===o?' on':'')+'" onclick="lpC(\''+o+'\')" style="font-size:11px;padding:4px 10px;">'+o+'</button>';}).join('')+'</div>';
+  var bioText=cmp?getBio(sig,cmp):'Select a second signal above to see the biological context for their relationship.';
+  var bioLabel=cmp?'Why '+sig.toLowerCase()+' & '+cmp.toLowerCase()+' are linked':'Biological context';
+  h+='<div style="margin:0 12px 14px;background:#F0EAF5;border-radius:10px;border-left:3px solid #5C2D4A;padding:10px 12px;"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;"><span style="font-size:14px;">&#129516;</span><span style="font-size:11px;font-weight:500;color:#5C2D4A;">'+bioLabel+'</span></div><p style="font-size:11px;color:#3D2030;line-height:1.55;margin:0;">'+bioText+'</p></div>';
+  return h;
+}
+function rfH(){
+  var h='<div style="padding:12px 12px 4px;"><p style="font-size:13px;font-weight:500;margin:0 0 8px;">Cycle timeline</p>';
+  function renderBar(label,dayCount,events,isCurrent){
+    var bar='<p style="font-size:10px;color:#7A566A;margin:0 0 3px;">'+label+'</p><div style="position:relative;height:20px;display:flex;gap:1px;margin-bottom:2px;">';
+    for(var d=1;d<=dayCount;d++){var fut=isCurrent&&d>18;bar+='<div style="flex:1;height:100%;background:'+(fut?'#F0E4EC':PC[phOf(d)])+';opacity:'+(fut?0.3:0.85)+';'+(fut?'border:0.5px dashed #D8BFD0;box-sizing:border-box;':'')+'border-radius:1px;"></div>';}
+    events.forEach(function(ev){
+      var d1p=((ev.d1-1)/(dayCount-1)*100).toFixed(1),d2p=((Math.min(ev.d2,dayCount)-1)/(dayCount-1)*100).toFixed(1),w=Math.max(parseFloat(d2p)-parseFloat(d1p),1.5);
+      bar+='<div style="position:absolute;top:0;left:'+d1p+'%;width:'+w+'%;height:100%;background:rgba(180,80,80,0.25);border:1px solid rgba(180,80,80,0.6);border-radius:2px;box-sizing:border-box;pointer-events:none;"></div>';
+      bar+='<div style="position:absolute;top:-12px;left:'+d1p+'%;transform:translateX(-40%);font-size:10px;pointer-events:none;">&#128205;</div>';
+    });
+    bar+='</div><div style="display:flex;justify-content:space-between;font-size:8px;color:#9A7A8A;margin-bottom:6px;"><span>'+dayShort(1)+'</span><span>'+dayShort(Math.round(dayCount/2))+'</span><span>'+dayShort(dayCount)+'</span></div>';
+    if(events.length) bar+='<div style="margin-bottom:4px;">'+events.map(function(e){return'<span style="font-size:9px;color:#5C2D4A;background:#F5EAF0;border-radius:4px;padding:2px 6px;margin-right:3px;display:inline-block;margin-top:2px;">&#128205; '+e.lbl+' &middot; Day '+e.d1+(e.d2>e.d1?'&ndash;'+e.d2:'')+'</span>';}).join('')+'</div>';
+    return bar;
+  }
+  h+=renderBar('Current cycle &middot; 1 Apr &ndash; 18 Apr (today, Day 18)',28,evts.filter(function(e){return e.c==='cur';}),true);
+  h+=renderBar('Previous cycle &middot; 27 days &middot; 3 Mar &ndash; 31 Mar',27,evts.filter(function(e){return e.c==='prev';}),false);
+  if(!addEv){
+    h+='<button class="lbt" onclick="lpEv()" style="width:100%;background:white;color:#5C2D4A;border:1.5px dashed #5C2D4A;margin-bottom:10px;box-sizing:border-box;">+ Add life event</button>';
+  } else {
+    h+='<div style="background:white;border:0.5px solid #E0C8D5;border-radius:12px;padding:12px;margin-bottom:10px;"><p style="font-size:13px;font-weight:500;margin:0 0 10px;">Add life event</p><input id="lev" class="lin" placeholder="e.g. Moving house, illness, exam stress..." style="margin-bottom:8px;"><div style="display:flex;gap:8px;margin-bottom:8px;"><div style="flex:1;"><label style="font-size:11px;color:#7A566A;display:block;margin-bottom:3px;">Start day</label><select id="lday1" class="lsel">'+Array.from({length:18},function(_,i){return'<option value="'+(i+1)+'"'+(i===9?' selected':'')+'>'+'Day '+(i+1)+' &middot; '+dayShort(i+1)+'</option>';}).join('')+'</select></div><div style="flex:1;"><label style="font-size:11px;color:#7A566A;display:block;margin-bottom:3px;">End day</label><select id="lday2" class="lsel">'+Array.from({length:18},function(_,i){return'<option value="'+(i+1)+'"'+(i===12?' selected':'')+'>'+'Day '+(i+1)+' &middot; '+dayShort(i+1)+'</option>';}).join('')+'</select></div></div><div style="display:flex;gap:8px;"><button class="lbt" onclick="lpSv()" style="flex:1;">Save event</button><button onclick="lpEv()" style="flex:1;background:white;color:#7A566A;border:1px solid #D8BFD0;border-radius:10px;padding:9px;font-size:13px;cursor:pointer;">Cancel</button></div></div>';
+  }
+  h+='</div><div style="padding:0 12px 6px;"><button class="lbt" onclick="lpP()" style="width:100%;box-sizing:border-box;'+(peer?'background:#F5EAF0;color:#5C2D4A;border:1.5px solid #5C2D4A;':'')+'">'+(peer?'&#9650; Hide peer comparison':'Compare with peers &#9654;')+'</button></div>';
+  if(peer){
+    var adj=peerLife==='breakup'?1.3:peerLife==='exam'?1.2:peerLife==='illness'?1.4:peerLife==='move'?1.1:1;
+    var peerN=peerLife==='none'?847:peerLife==='breakup'?214:peerLife==='exam'?412:peerLife==='illness'?188:peerLife==='travel'?267:139;
+    var peerData=[['Cramp severity',3,Math.min(Math.round(4*adj),5),5],['Sleep quality',6,Math.round(7/adj),10],['Energy level',4,Math.round(5/adj),10],['Mood',3,Math.round(4/adj),5]];
+    var insightMap={none:'Peer data shown for context only. Individual cycles vary significantly.',exam:'Peers who reported exam or deadline stress showed elevated cramp severity and mood disruption during the luteal phase, consistent with HPA&ndash;HPG axis cross-talk under psychological stress (Nagma et al., 2015).',breakup:'Peers who reported a breakup or significant loss showed markedly reduced sleep quality and lower mood ratings in the cycle following the event. Grief and acute stress can suppress oestrogen production via cortisol elevation.',illness:'Peers who experienced illness showed higher fatigue and lower energy, consistent with immune-inflammatory overlap with menstrual prostaglandin pathways.',travel:'Peers who reported travel or schedule disruption showed sleep disruption and mild mood impact, likely via circadian rhythm interference with melatonin and oestrogen interplay.',move:'Peers who reported moving home showed moderate fatigue and bloating increases, consistent with physical exertion and stress-related cortisol effects on the luteal phase.'};
+    h+='<div style="margin:4px 12px 14px;background:white;border-radius:12px;border:0.5px solid #E0C8D5;padding:12px;"><p style="font-size:13px;font-weight:500;margin:0 0 2px;">Contextualised peer comparison</p><p style="font-size:10px;color:#7A566A;margin:0 0 10px;">Anonymised aggregated data &middot; filtered to your profile</p><div style="display:flex;gap:8px;margin-bottom:10px;"><div style="flex:1;"><label style="font-size:10px;color:#7A566A;display:block;margin-bottom:3px;">Age group</label><select class="lsel" style="font-size:12px;" onchange="lpAge(this.value)"><option value="18-24"'+(peerAge==='18-24'?' selected':'')+'>18&ndash;24</option><option value="22-28"'+(peerAge==='22-28'?' selected':'')+'>22&ndash;28</option><option value="28-35"'+(peerAge==='28-35'?' selected':'')+'>28&ndash;35</option></select></div><div style="flex:1;"><label style="font-size:10px;color:#7A566A;display:block;margin-bottom:3px;">Similar life event</label><select class="lsel" style="font-size:12px;" onchange="lpLf(this.value)"><option value="none"'+(peerLife==='none'?' selected':'')+'>No filter</option><option value="exam"'+(peerLife==='exam'?' selected':'')+'>Exam / deadline</option><option value="breakup"'+(peerLife==='breakup'?' selected':'')+'>Breakup / loss</option><option value="travel"'+(peerLife==='travel'?' selected':'')+'>Travel / disruption</option><option value="illness"'+(peerLife==='illness'?' selected':'')+'>Illness</option><option value="move"'+(peerLife==='move'?' selected':'')+'>Moving home</option></select></div></div>';
+    h+='<div style="background:#F5EAF0;border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:10px;color:#5C2D4A;"><span style="font-weight:500;">Showing:</span> '+peerAge+' &middot; '+(peerLife==='none'?'all life events':'reported '+peerLife)+' &middot; n='+peerN.toLocaleString()+' cycles</div>';
+    peerData.forEach(function(row){var l=row[0],y=row[1],p=row[2],mx=row[3],yp=Math.round(y/mx*100),pp=Math.round(p/mx*100);h+='<div style="margin-bottom:12px;"><div style="font-size:11px;margin-bottom:5px;">'+l+'</div><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:10px;color:#7A566A;"><span style="width:30px;text-align:right;">You</span><div style="flex:1;height:9px;background:#F0E4EC;border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+yp+'%;background:#5C2D4A;border-radius:3px;"></div></div><span>'+y+'/'+mx+'</span></div><div style="display:flex;align-items:center;gap:6px;font-size:10px;color:#7A566A;"><span style="width:30px;text-align:right;">Peers</span><div style="flex:1;height:9px;background:#F0E4EC;border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+pp+'%;background:#D44080;opacity:0.55;border-radius:3px;"></div></div><span>'+p+'/'+mx+'</span></div></div>';});
+    h+='<div style="background:#FFF3F8;border-radius:8px;padding:8px;font-size:10px;color:#5C2D4A;line-height:1.5;margin-bottom:6px;"><span style="font-weight:500;">Context: </span>'+insightMap[peerLife]+'</div><div style="background:#F5F5F5;border-radius:6px;padding:6px 8px;font-size:9px;color:#7A566A;">&#9888; For contextual awareness only. Not medical advice. Consult a healthcare provider for clinical concerns.</div></div>';
+  }
+  return h;
+}
+function go(){var el=document.getElementById('lpc');if(!el)return;el.innerHTML=cv==='f'?rfF():cv==='e'?rfE():rfH();if(cv==='f'){var s=document.getElementById('day-strip');if(s)s.scrollLeft=(sd-5)*41;}}
+function lpD(d){sd=d;go();}
+function lpS(s){sig=s;cmp=null;go();}
+function lpC(c){cmp=c===cmp?null:c;go();}
+function lpEv(){addEv=!addEv;go();}
+function lpP(){peer=!peer;go();}
+function lpAge(v){peerAge=v;go();}
+function lpLf(v){peerLife=v;go();}
+function lpSv(){var i=document.getElementById('lev'),d1=document.getElementById('lday1'),d2=document.getElementById('lday2');if(i&&i.value.trim())evts.push({d1:parseInt(d1.value),d2:parseInt(d2.value),lbl:i.value.trim(),c:'cur'});addEv=false;go();}
+go();
+</script>
+</body>
+</html>
